@@ -11,22 +11,23 @@ buildscript {
         propVersionName = '5.32.7'
         kotlin_version = '1.4.21'
     }
-//    repositories {
-//        google()
-//        jcenter()
-//        if (is_proprietary) {
-//            maven { url 'https://artifactory.img.ly/artifactory/imgly' }
-//        }
-//    }
     repositories {
-        maven { url 'https://maven.aliyun.com/repository/central' }
-        maven { url 'https://maven.aliyun.com/repository/google' }
-        maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
-        maven { url 'https://maven.aliyun.com/repository/jcenter' }
-        maven { url 'https://maven.aliyun.com/repository/public' }
         google()
         jcenter()
+        if (is_proprietary) {
+            maven { url 'https://artifactory.img.ly/artifactory/imgly' }
+        }
     }
+//    repositories {
+//        maven { url 'https://maven.aliyun.com/repository/central' }
+//        maven { url 'https://maven.aliyun.com/repository/google' }
+//        maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
+//        maven { url 'https://maven.aliyun.com/repository/jcenter' }
+//        maven { url 'https://maven.aliyun.com/repository/public' }
+//        maven { url 'https://artifactory.img.ly/artifactory/imgly' }
+//        google()
+//        jcenter()
+//    }
 
     dependencies {
         classpath 'com.android.tools.build:gradle:4.1.1'
@@ -41,20 +42,21 @@ buildscript {
 }
 
 allprojects {
-//    repositories {
-//        google()
-//        jcenter()
-//        maven { url "https://jitpack.io" }
-//    }
     repositories {
-        maven { url 'https://maven.aliyun.com/repository/central' }
-        maven { url 'https://maven.aliyun.com/repository/google' }
-        maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
-        maven { url 'https://maven.aliyun.com/repository/jcenter' }
-        maven { url 'https://maven.aliyun.com/repository/public' }
         google()
         jcenter()
+        maven { url "https://jitpack.io" }
     }
+//    repositories {
+//        maven { url 'https://maven.aliyun.com/repository/central' }
+//        maven { url 'https://maven.aliyun.com/repository/google' }
+//        maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
+//        maven { url 'https://maven.aliyun.com/repository/jcenter' }
+//        maven { url 'https://maven.aliyun.com/repository/public' }
+//        maven { url 'https://artifactory.img.ly/artifactory/imgly' }
+//        google()
+//        jcenter()
+//    }
 }
 
 task clean(type: Delete) {
