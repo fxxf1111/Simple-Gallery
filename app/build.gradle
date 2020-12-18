@@ -19,7 +19,7 @@ android {
         targetSdkVersion 29
         versionCode 330
         versionName "6.18.0"
-        setProperty("archivesBaseName", "gallery-$versionCode")
+        setProperty("archivesBaseName", "gallery-$versionCode-Elink")
         vectorDrawables.useSupportLibrary = true
 
         ndk{
