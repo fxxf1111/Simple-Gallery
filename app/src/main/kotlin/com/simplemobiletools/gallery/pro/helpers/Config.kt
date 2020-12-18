@@ -188,7 +188,7 @@ class Config(context: Context) : BaseConfig(context) {
         set(display) = prefs.edit().putBoolean(DISPLAY_FILE_NAMES, display).apply()
 
     var blackBackground: Boolean
-        get() = prefs.getBoolean(BLACK_BACKGROUND, false)
+        get() = prefs.getBoolean(BLACK_BACKGROUND, true)
         set(blackBackground) = prefs.edit().putBoolean(BLACK_BACKGROUND, blackBackground).apply()
 
     var filterMedia: Int
@@ -357,7 +357,7 @@ class Config(context: Context) : BaseConfig(context) {
         set(groupBy) = prefs.edit().putInt(GROUP_BY, groupBy).apply()
 
     var useRecycleBin: Boolean
-        get() = prefs.getBoolean(USE_RECYCLE_BIN, true)
+        get() = prefs.getBoolean(USE_RECYCLE_BIN, false)
         set(useRecycleBin) = prefs.edit().putBoolean(USE_RECYCLE_BIN, useRecycleBin).apply()
 
     var bottomActions: Boolean
