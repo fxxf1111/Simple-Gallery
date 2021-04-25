@@ -172,7 +172,7 @@ class Config(context: Context) : BaseConfig(context) {
         set(screenRotation) = prefs.edit().putInt(SCREEN_ROTATION, screenRotation).apply()
 
     var fileLoadingPriority: Int
-        get() = prefs.getInt(FILE_LOADING_PRIORITY, PRIORITY_COMPROMISE)
+        get() = prefs.getInt(FILE_LOADING_PRIORITY, PRIORITY_SPEED)
         set(fileLoadingPriority) = prefs.edit().putInt(FILE_LOADING_PRIORITY, fileLoadingPriority).apply()
 
     var loopVideos: Boolean
@@ -507,4 +507,12 @@ class Config(context: Context) : BaseConfig(context) {
     var limitFolderTitle: Boolean
         get() = prefs.getBoolean(LIMIT_FOLDER_TITLE, true)
         set(limitFolderTitle) = prefs.edit().putBoolean(LIMIT_FOLDER_TITLE, limitFolderTitle).apply()
+
+    var thumbnailSpacing: Int
+        get() = prefs.getInt(THUMBNAIL_SPACING, 1)
+        set(thumbnailSpacing) = prefs.edit().putInt(THUMBNAIL_SPACING, thumbnailSpacing).apply()
+
+    var fileRoundedCorners: Boolean
+        get() = prefs.getBoolean(FILE_ROUNDED_CORNERS, false)
+        set(fileRoundedCorners) = prefs.edit().putBoolean(FILE_ROUNDED_CORNERS, fileRoundedCorners).apply()
 }

@@ -10,7 +10,6 @@ import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.LayerDrawable
-import android.media.ExifInterface
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
@@ -19,6 +18,7 @@ import android.provider.MediaStore.Images
 import android.util.DisplayMetrics
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.exifinterface.media.ExifInterface
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DecodeFormat
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -74,34 +74,30 @@ fun Activity.openEditor(path: String, forceChooser: Boolean = false) {
 
 fun Activity.launchCamera() {
     val intent = Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA)
-    if (intent.resolveActivity(packageManager) != null) {
-        startActivity(intent)
-    } else {
-        toast(R.string.no_app_found)
-    }
+    launchActivityIntent(intent)
 }
 
 fun SimpleActivity.launchAbout() {
     val licenses = LICENSE_GLIDE or LICENSE_CROPPER or LICENSE_RTL or LICENSE_SUBSAMPLING or LICENSE_PATTERN or LICENSE_REPRINT or LICENSE_GIF_DRAWABLE or
-            LICENSE_PICASSO or LICENSE_EXOPLAYER or LICENSE_PANORAMA_VIEW or LICENSE_SANSELAN or LICENSE_FILTERS or LICENSE_GESTURE_VIEWS or
-            LICENSE_APNG
+        LICENSE_PICASSO or LICENSE_EXOPLAYER or LICENSE_PANORAMA_VIEW or LICENSE_SANSELAN or LICENSE_FILTERS or LICENSE_GESTURE_VIEWS or
+        LICENSE_APNG
 
     val faqItems = arrayListOf(
-        FAQItem(R.string.faq_5_title_commons, R.string.faq_5_text_commons),
-        FAQItem(R.string.faq_1_title, R.string.faq_1_text),
-        FAQItem(R.string.faq_2_title, R.string.faq_2_text),
         FAQItem(R.string.faq_3_title, R.string.faq_3_text),
-        FAQItem(R.string.faq_4_title, R.string.faq_4_text),
-        FAQItem(R.string.faq_5_title, R.string.faq_5_text),
-        FAQItem(R.string.faq_6_title, R.string.faq_6_text),
+        FAQItem(R.string.faq_12_title, R.string.faq_12_text),
         FAQItem(R.string.faq_7_title, R.string.faq_7_text),
+        FAQItem(R.string.faq_14_title, R.string.faq_14_text),
+        FAQItem(R.string.faq_1_title, R.string.faq_1_text),
+        FAQItem(R.string.faq_5_title_commons, R.string.faq_5_text_commons),
+        FAQItem(R.string.faq_5_title, R.string.faq_5_text),
+        FAQItem(R.string.faq_4_title, R.string.faq_4_text),
+        FAQItem(R.string.faq_6_title, R.string.faq_6_text),
         FAQItem(R.string.faq_8_title, R.string.faq_8_text),
         FAQItem(R.string.faq_10_title, R.string.faq_10_text),
         FAQItem(R.string.faq_11_title, R.string.faq_11_text),
-        FAQItem(R.string.faq_12_title, R.string.faq_12_text),
         FAQItem(R.string.faq_13_title, R.string.faq_13_text),
-        FAQItem(R.string.faq_14_title, R.string.faq_14_text),
         FAQItem(R.string.faq_15_title, R.string.faq_15_text),
+        FAQItem(R.string.faq_2_title, R.string.faq_2_text),
         FAQItem(R.string.faq_2_title_commons, R.string.faq_2_text_commons),
         FAQItem(R.string.faq_6_title_commons, R.string.faq_6_text_commons),
         FAQItem(R.string.faq_7_title_commons, R.string.faq_7_text_commons),
@@ -117,8 +113,8 @@ fun AppCompatActivity.showSystemUI(toggleActionBarVisibility: Boolean) {
     }
 
     window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
-            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+        View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
+        View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
 }
 
 fun AppCompatActivity.hideSystemUI(toggleActionBarVisibility: Boolean) {
@@ -127,12 +123,12 @@ fun AppCompatActivity.hideSystemUI(toggleActionBarVisibility: Boolean) {
     }
 
     window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-            View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
-            View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
-            View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-            View.SYSTEM_UI_FLAG_LOW_PROFILE or
-            View.SYSTEM_UI_FLAG_FULLSCREEN or
-            View.SYSTEM_UI_FLAG_IMMERSIVE
+        View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
+        View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+        View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+        View.SYSTEM_UI_FLAG_LOW_PROFILE or
+        View.SYSTEM_UI_FLAG_FULLSCREEN or
+        View.SYSTEM_UI_FLAG_IMMERSIVE
 }
 
 fun BaseSimpleActivity.addNoMedia(path: String, callback: () -> Unit) {
@@ -161,7 +157,9 @@ fun BaseSimpleActivity.addNoMedia(path: String, callback: () -> Unit) {
     } else {
         try {
             if (file.createNewFile()) {
-                addNoMediaIntoMediaStore(file.absolutePath)
+                ensureBackgroundThread {
+                    addNoMediaIntoMediaStore(file.absolutePath)
+                }
             } else {
                 toast(R.string.unknown_error_occurred)
             }
@@ -215,7 +213,10 @@ fun BaseSimpleActivity.toggleFileVisibility(oldPath: String, hide: Boolean, call
 
     val newPath = "$path/$filename"
     renameFile(oldPath, newPath) {
-        callback?.invoke(newPath)
+        runOnUiThread {
+            callback?.invoke(newPath)
+        }
+
         ensureBackgroundThread {
             updateDBMediaPath(oldPath, newPath)
         }
@@ -281,7 +282,7 @@ fun BaseSimpleActivity.movePathsInRecycleBin(paths: ArrayList<String>, callback:
 
                     out?.flush()
 
-                    if (fileDocument?.getItemSize(true) == copiedSize && getDoesFilePathExist(destination)) {
+                    if (fileDocument.getItemSize(true) == copiedSize && getDoesFilePathExist(destination)) {
                         mediaDB.updateDeleted("$RECYCLE_BIN$source", System.currentTimeMillis(), source)
                         pathsCnt--
                     }
@@ -424,7 +425,12 @@ fun Activity.hasNavBar(): Boolean {
     return (realDisplayMetrics.widthPixels - displayMetrics.widthPixels > 0) || (realDisplayMetrics.heightPixels - displayMetrics.heightPixels > 0)
 }
 
-fun Activity.fixDateTaken(paths: ArrayList<String>, showToasts: Boolean, hasRescanned: Boolean = false, callback: (() -> Unit)? = null) {
+fun AppCompatActivity.fixDateTaken(
+    paths: ArrayList<String>,
+    showToasts: Boolean,
+    hasRescanned: Boolean = false,
+    callback: (() -> Unit)? = null
+) {
     val BATCH_SIZE = 50
     if (showToasts) {
         toast(R.string.fixing)
@@ -504,7 +510,7 @@ fun Activity.fixDateTaken(paths: ArrayList<String>, showToasts: Boolean, hasResc
                 }
             } else {
                 rescanPaths(pathsToRescan) {
-                    fixDateTaken(paths, showToasts, true)
+                    fixDateTaken(paths, showToasts, true, callback)
                 }
             }
         }
@@ -598,7 +604,7 @@ fun Activity.fileRotatedSuccessfully(path: String, lastModified: Long) {
         updateLastModified(path, lastModified)
     }
 
-    Picasso.get().invalidate(path.getFileKey())
+    Picasso.get().invalidate(path.getFileKey(lastModified))
     // we cannot refresh a specific image in Glide Cache, so just clear it all
     val glide = Glide.get(applicationContext)
     glide.clearDiskCache()

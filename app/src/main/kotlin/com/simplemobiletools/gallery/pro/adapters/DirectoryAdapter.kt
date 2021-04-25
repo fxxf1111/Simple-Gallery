@@ -42,7 +42,7 @@ import java.io.File
 
 class DirectoryAdapter(activity: BaseSimpleActivity, var dirs: ArrayList<Directory>, val listener: DirectoryOperationsListener?, recyclerView: MyRecyclerView,
                        val isPickIntent: Boolean, fastScroller: FastScroller? = null, itemClick: (Any) -> Unit) :
-        MyRecyclerViewAdapter(activity, recyclerView, fastScroller, itemClick) {
+    MyRecyclerViewAdapter(activity, recyclerView, fastScroller, itemClick) {
 
     private val config = activity.config
     private val isListViewType = config.viewTypeFolders == VIEW_TYPE_LIST
@@ -156,8 +156,8 @@ class DirectoryAdapter(activity: BaseSimpleActivity, var dirs: ArrayList<Directo
     }
 
     private fun checkHideBtnVisibility(menu: Menu, selectedPaths: ArrayList<String>) {
-        menu.findItem(R.id.cab_hide).isVisible = selectedPaths.any { !it.doesThisOrParentHaveNoMedia() }
-        menu.findItem(R.id.cab_unhide).isVisible = selectedPaths.any { it.doesThisOrParentHaveNoMedia() }
+        menu.findItem(R.id.cab_hide).isVisible = selectedPaths.any { !it.doesThisOrParentHaveNoMedia(HashMap(), null) }
+        menu.findItem(R.id.cab_unhide).isVisible = selectedPaths.any { it.doesThisOrParentHaveNoMedia(HashMap(), null) }
     }
 
     private fun checkPinBtnVisibility(menu: Menu, selectedPaths: ArrayList<String>) {
@@ -327,7 +327,7 @@ class DirectoryAdapter(activity: BaseSimpleActivity, var dirs: ArrayList<Directo
                 val affectedPositions = ArrayList<Int>()
                 val includedFolders = config.includedFolders
                 val newDirs = dirs.filterIndexed { index, directory ->
-                    val removeDir = directory.path.doesThisOrParentHaveNoMedia() && !includedFolders.contains(directory.path)
+                    val removeDir = directory.path.doesThisOrParentHaveNoMedia(HashMap(), null) && !includedFolders.contains(directory.path)
                     if (removeDir) {
                         affectedPositions.add(index)
                     }
@@ -439,12 +439,12 @@ class DirectoryAdapter(activity: BaseSimpleActivity, var dirs: ArrayList<Directo
             val filter = config.filterMedia
             File(it).listFiles()?.filter {
                 !File(it.absolutePath).isDirectory &&
-                        it.absolutePath.isMediaFile() && (showHidden || !it.name.startsWith('.')) &&
-                        ((it.isImageFast() && filter and TYPE_IMAGES != 0) ||
-                                (it.isVideoFast() && filter and TYPE_VIDEOS != 0) ||
-                                (it.isGif() && filter and TYPE_GIFS != 0) ||
-                                (it.isRawFast() && filter and TYPE_RAWS != 0) ||
-                                (it.isSvg() && filter and TYPE_SVGS != 0))
+                    it.absolutePath.isMediaFile() && (showHidden || !it.name.startsWith('.')) &&
+                    ((it.isImageFast() && filter and TYPE_IMAGES != 0) ||
+                        (it.isVideoFast() && filter and TYPE_VIDEOS != 0) ||
+                        (it.isGif() && filter and TYPE_GIFS != 0) ||
+                        (it.isRawFast() && filter and TYPE_RAWS != 0) ||
+                        (it.isSvg() && filter and TYPE_SVGS != 0))
             }?.mapTo(paths) { it.absolutePath }
         }
 
@@ -503,18 +503,22 @@ class DirectoryAdapter(activity: BaseSimpleActivity, var dirs: ArrayList<Directo
             config.skipDeleteConfirmation -> deleteFolders()
             else -> {
                 val itemsCnt = selectedKeys.size
-                val items = if (itemsCnt == 1) {
-                    var folder = getSelectedPaths().first().getFilenameFromPath()
-                    if (folder == RECYCLE_BIN) {
-                        folder = activity.getString(R.string.recycle_bin)
+                if (itemsCnt == 1 && getSelectedItems().first().isRecycleBin()) {
+                    ConfirmationDialog(activity, "", R.string.empty_recycle_bin_confirmation, R.string.yes, R.string.no) {
+                        deleteFolders()
                     }
+                    return
+                }
+
+                val items = if (itemsCnt == 1) {
+                    val folder = getSelectedPaths().first().getFilenameFromPath()
                     "\"$folder\""
                 } else {
                     resources.getQuantityString(R.plurals.delete_items, itemsCnt, itemsCnt)
                 }
 
                 val fileDirItem = getFirstSelectedItem() ?: return
-                val baseString = if (!config.useRecycleBin || (isOneItemSelected() && fileDirItem.isRecycleBin()) || (isOneItemSelected() && fileDirItem.areFavorites())) {
+                val baseString = if (!config.useRecycleBin || (isOneItemSelected() && fileDirItem.areFavorites())) {
                     R.string.deletion_confirmation
                 } else {
                     R.string.move_to_recycle_bin_confirmation
@@ -677,7 +681,12 @@ class DirectoryAdapter(activity: BaseSimpleActivity, var dirs: ArrayList<Directo
 
             dir_check?.beVisibleIf(isSelected)
             if (isSelected) {
-                dir_check.background?.applyColorFilter(primaryColor)
+                dir_check.background?.applyColorFilter(adjustedPrimaryColor)
+                dir_check.applyColorFilter(contrastColor)
+            }
+
+            if (isListViewType) {
+                dir_holder.isSelected = isSelected
             }
 
             if (scrollHorizontally && !isListViewType && folderStyle == FOLDER_STYLE_ROUNDED_CORNERS) {
@@ -710,7 +719,7 @@ class DirectoryAdapter(activity: BaseSimpleActivity, var dirs: ArrayList<Directo
                     else -> ROUNDED_CORNERS_BIG
                 }
 
-                activity.loadImage(thumbnailType, directory.tmb, dir_thumbnail, scrollHorizontally, animateGifs, cropThumbnails, roundedCorners)
+                activity.loadImage(thumbnailType, directory.tmb, dir_thumbnail, scrollHorizontally, animateGifs, cropThumbnails, roundedCorners, directory.getKey())
             }
 
             dir_pin.beVisibleIf(pinnedFolders.contains(directory.path))
